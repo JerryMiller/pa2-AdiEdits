@@ -357,11 +357,11 @@ public class PrioritySchedulerTest {
 				}
 			}
 			if(currentEvent.getEvent() == EventType.LEAVE_START) {
-				if(currentEvent.getVehicle() instanceof Car && currentEvent.getTunnel().getName() == ambulanceTunnel.getName() && !ambulanceLeft) {
+				if(currentEvent.getVehicle() instanceof Car && currentEvent.getVehicle().getTunnel().getName() == ambulanceTunnel.getName() && !ambulanceLeft) {
 					System.out.println(currentEvent.getTunnel().getName() + " == " + ambulanceTunnel.getName());
 					assertTrue("Vehicle "+currentEvent.getVehicle() + " left tunnel while ambulance was still running!", false);
 				}
-				if(currentEvent.getVehicle() instanceof Car && currentEvent.getTunnel().getName() != ambulanceTunnel.getName()) {
+				if(currentEvent.getVehicle() instanceof Car && currentEvent.getVehicle().getTunnel().getName() != ambulanceTunnel.getName()) {
 					assertTrue("Car "+ currentEvent.getVehicle().getName() + " should be in the other Tunnel" , currentEvent.getVehicle() == car2);
 					carLonelyTunnelLeft = true;
 				}

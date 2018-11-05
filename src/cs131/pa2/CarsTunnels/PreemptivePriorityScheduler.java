@@ -42,12 +42,9 @@ public class PreemptivePriorityScheduler extends Tunnel{
 		try {
 			System.out.println(vehicle.getName());
 			tryToEnterInner.lock();
-//			ambToAmbLock.lock();
 			waiting.add(vehicle);
 			while(!vehicle.equals(waiting.peek()) || !canEnter(vehicle)) {
-				System.out.println("In trytoenterinnerfirstloop");
 				try {
-					System.out.println("Waiting for " + vehicle.getName());
 					tunnelNotEmpty.await();
 					
 				} catch (InterruptedException e) {
@@ -140,18 +137,18 @@ public class PreemptivePriorityScheduler extends Tunnel{
 					if(myList.get(i).equals(vehicle)) {
 						t.exitTunnel(vehicle);
 						if(!(vehicle instanceof Ambulance)) {
+							System.out.println(vehicle.getName() + " Vehicle leaving tunnel");
 							tunnelToVehicle.get(t).remove(vehicle);
 						}
 						if(vehicle instanceof Ambulance) {
 							System.out.println("MAde it to exit...now signalling");
 //							AmbulancetoAmbulance.signalAll();
-//							vehicle.getTunnel().ambInTunnel.lock();
-//							vehicle.getTunnel().ambulanceInTunnel.signalAll();
-//							vehicle.getTunnel().ambInTunnel.unlock();
-							System.out.println("EXITED TUNNEL YESSS");
+							vehicle.getTunnel().ambInTunnel.lock();
+							vehicle.getTunnel().ambulanceInTunnel.signalAll();
+							vehicle.getTunnel().ambInTunnel.unlock();
+//							System.out.println("EXITED TUNNEL YESSS");
 						}
 						tunnelNotEmpty.signalAll();	
-						
 						return;
 					}
 				}		
@@ -159,7 +156,6 @@ public class PreemptivePriorityScheduler extends Tunnel{
 		}
 		finally {
 			tryToEnterInner.unlock();
-//			ambToAmbLock.unlock();
 		}
 	}
 	

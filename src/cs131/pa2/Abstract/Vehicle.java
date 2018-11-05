@@ -157,12 +157,7 @@ public abstract class Vehicle implements Runnable {
         	for(Tunnel tunnel : tunnels) {
                 if(tunnel.tryToEnter(this)) { // Tunnel is actually the preemptive priority scheudle because we call vehicle.addTunnel(PPS);
                     doWhileInTunnel();
-                    System.out.println("Exited DO While");
                     tunnel.exitTunnel(this);
-//                    if(this instanceof Ambulance && lockTunnel!=null) {
-//                     lockTunnel.ambulanceInTunnel.signalAll();
-//       	    		 lockTunnel.ambInTunnel.unlock();
-//                    }
                     this.log.addToLog(this, EventType.COMPLETE);
                     return; // done, so leave the whole function
                 }
@@ -186,19 +181,11 @@ public abstract class Vehicle implements Runnable {
      */
     public final void doWhileInTunnel() {
     	System.out.println("While in Tunnel"+ this.toString());
-    	
-    	
-    	Tunnel lockTunnels =null;
-    	for(Tunnel t: this.tunnels) {
-    		lockTunnels= t;
-    	}
-    	if(lockTunnels == null)
+    	if(tunnels == null) {
     		return;
-    	
+    	}
     	Tunnel lockTunnel = this.getTunnel();
-//    	System.out.println(this.toString()+ " " + lockTunnel.getName());
-    	lockTunnel.ambOutTunnel.lock();
-//    	lockTunnel.ambInTunnel.lock();
+		lockTunnel.ambOutTunnel.lock();
     	System.out.println(this.toString()+ " has the lock");
     	
     	long nanos = TimeUnit.MILLISECONDS.toNanos(((10 - speed) * 100));
@@ -211,11 +198,6 @@ public abstract class Vehicle implements Runnable {
 	    		 lockTunnel.ambOutTunnel.unlock();
 	    		 
 	    		 Thread.sleep(((10 - speed) * 100));
-	    		 
-	    		 lockTunnel.ambInTunnel.lock();
-	    		 lockTunnel.ambulanceInTunnel.signalAll();
-	    		 System.out.println("Amburlance has signalled InTUnnel");
-	    		 lockTunnel.ambInTunnel.unlock();
 	    		
 	             
 	         } catch(InterruptedException e) {
@@ -228,49 +210,22 @@ public abstract class Vehicle implements Runnable {
     	long start = ((10 - speed) * 100);
     	try {
     		while(!ambInTunnel() || nanos!=0) {
-    			System.out.println(this.toString()+ " No Ambulance in Tunnel Yet");
 				try {
 					
-					lockTunnel.ambOutTunnel.lock();
-					
-					nanos = lockTunnel.ambulanceOutTunnel.awaitNanos(nanos);
-//					long startTime = System.nanoTime();
-//					lockTunnel.ambulanceOutTunnel.awaitNanos(start);
-//					long endTime = System.nanoTime();
-//					start = start-(startTime-endTime);
-//					
+					nanos = lockTunnel.ambulanceOutTunnel.awaitNanos(nanos);					
 					
 					System.out.println(this.toString()+" has an ambulance = " +((BasicTunnel)this.tunnel).ambulance );
 					lockTunnel.ambOutTunnel.unlock();
-					if(ambInTunnel()) {
-					System.out.println(this.toString()+ " Has been awoken by amubalcne");
-					}
 					if(nanos <= 0) {
-						System.out.println(this.toString() +" Unlocked AmbOutTunnel");
-						lockTunnel.ambOutTunnel.unlock();
-//						lockTunnel.ambInTunnel.unlock();
-	    				return;
-	    			}
+						return;
+					}
 					System.out.println(this.toString() + " Ambulance in TUnnel" );
 					lockTunnel.ambInTunnel.lock();
 					System.out.println(this.toString() + " AmbinTunnel Locked" );
 					lockTunnel.ambulanceInTunnel.await();
 					System.out.println(this.toString() + " Ambulance Out TUnnel" );
-//					while(ambInTunnel()){ 
-//					System.out.println(this.toString() + " Ambulance in TUnnel" );
-//					 
-////					lockTunnel.ambOutTunnel.unlock();
-////					System.out.println(this.toString() + " AmbOutTunnel un Locked" );
-//				
-//					lockTunnel.ambInTunnel.lock();
-//					
-//					System.out.println(this.toString() + " AmbinTunnel Locked" );
-////					lockTunnel.ambInTunnel.lock();
-//					lockTunnel.ambulanceInTunnel.await();
-//					System.out.println(this.toString() + " Ambulance Out TUnnel" );
-//					}
-
-					
+					lockTunnel.ambInTunnel.unlock();
+					lockTunnel.ambOutTunnel.lock(); //lock ambOutTunnel, because if we get to here.  We will have to run in the while loop again
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -278,15 +233,10 @@ public abstract class Vehicle implements Runnable {
 				
 				
 			}
-//    		if(ambInTunnel()) {
-//    			return;
-//    		}
-//    		lockTunnel.ambOutTunnel.unlock();
-//			lockTunnel.ambInTunnel.unlock();
-    		lockTunnel.ambOutTunnel.unlock();
-			System.out.println(this.toString()+" Definitley Unlocked both");
     	}catch( IllegalMonitorStateException e) {
+//    			lockTunnel.ambInTunnel.unlock();
     			System.out.println(this.toString() + " There has been an illegal montior");
+//    		e.printStackTrace();
     	}
     		
     	
